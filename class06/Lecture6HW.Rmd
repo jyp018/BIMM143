@@ -1,0 +1,94 @@
+---
+title: "Lecture 6 Homework"
+author: "Jinyoung Park"
+date: "1/29/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Given Code
+```{r}
+# Can you improve this analysis code?
+library(bio3d)
+
+s1 <- read.pdb("4AKE") # kinase with drug
+s2 <- read.pdb("1AKE") # kinase no drug
+s3 <- read.pdb("1E4Y") # kinase with drug
+
+s1.chainA <- trim.pdb(s1, chain="A", elety="CA")
+s2.chainA <- trim.pdb(s2, chain="A", elety="CA")
+s3.chainA <- trim.pdb(s1, chain="A", elety="CA")
+
+s1.b <- s1.chainA$atom$b
+s2.b <- s2.chainA$atom$b
+s3.b <- s3.chainA$atom$b
+
+plotb3(s1.b, sse=s1.chainA, typ="l", ylab="Bfactor")
+plotb3(s2.b, sse=s2.chainA, typ="l", ylab="Bfactor")
+plotb3(s3.b, sse=s3.chainA, typ="l", ylab="Bfactor")
+```
+
+# How would you generalize the original code above to work with any set of input protein structures?
+
+## Which codes are repeated?
+s1 <- read.pdb(“4AKE”)
+
+s1.chainA <- trim.pdb(s1, chain = “A”, elety = “CA”)
+
+s1.b <- s1.chainAatomb s1.chainA$atom
+
+plotb3(s1.b, sse = s1.chainA, typ = “l”, ylab = “Bfactor”)
+
+## Turn this into a new function, drug_interaction_plot.
+
+drug_interaction_plot brings in a vector from PDB files along with the parameters to analyze different files including chain, element, and factor.  
+
+This new function works with any vector from PDB files. It creates the first plot with the first vector with applied parameters and adds other plots to the existing plot.  
+
+To make it easier to visualize, the output is one plot with different colored line for each file. Like plot of original analysis code, the residues are on the x-axis and the specified factor on the y-axis. 
+
+```{r}
+drug_interaction_plot <- function(file, chain, elmnt, fctr) {
+  
+  # makes data different colors in the graph
+  plot_colors <- c("pink", "lightblue", "lightgreen")
+  
+  # to repeat through every file vector
+  for (i in 1:length(file)) {
+  s1 <- read.pdb(file[i])
+
+  s1.chain <- trim.pdb(s1, chain = chain, elety = elmnt)
+  
+  atom_df <- s1.chain$atom
+  
+  # the "$" syntax cannot take a variable, so s1.fctr takes in all the atom information and selects an entire column based on the factor input
+  s1.fctr <- atom_df[, fctr] 
+  
+  # creates the first plot
+  if (i == 1) {
+    plotb3(s1.fctr, sse = s1.chain, typ = "l", ylab = paste(toupper(fctr), "factor", sep = ""), col = plot_colors[i])
+    
+  # adds additional plots to first plot
+  } else {
+    lines(s1.fctr, col = plot_colors[i])
+  }
+  }
+  
+  # creates a legend for the graph
+  legend("topright", title = "PDB File Name", file, fill = plot_colors, horiz=TRUE, cex = 0.5, inset = c(0.05, 0.05))
+}
+```
+
+## Test the function with three files with parameters of chain "A", elements "CA", and factors "b".
+
+```{r}
+files <- c("4AKE", "1AKE", "1E4Y")
+chains <- "A"
+elements <- "CA"
+factors <- "b"
+
+drug_interaction_plot(files, chains, elements, factors)
+```

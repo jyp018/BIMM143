@@ -1,0 +1,301 @@
+---
+title: 'Class 6: R Functions'
+author: "Jinyoung Park"
+date: "1/23/2020"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Functions 
+
+## Level 2 heading 
+
+### Level 3 heading
+
+
+plot(1:5, col = "blue")
+```{r}
+#This is a silly plot
+plot(1:5, col = "blue")
+```
+
+
+Lets see more about **file import** (i.e. reading fiels into R). The main read function in base R is `read.table()`
+
+```{r}
+t1 <- read.table("test1.txt")
+```
+
+We need to add arguments to get this file imported 
+
+```{r}
+t1 <- read.table("test1.txt", sep=",", header = TRUE)
+```
+
+Or I could just use `read.csv()` which has the arguments I want in this case!
+
+```{r}
+t1 <- read.csv("test1.txt")
+```
+
+```{r}
+read.table("test1.txt", sep="$", header = TRUE)
+```
+
+Our first example function:
+
+```{r}
+add <- function(x, y=1) {
+  #Sum the imput x and y
+  x+y
+}
+```
+
+Let's try using this function 
+
+```{r}
+add(7,3)
+```
+
+How does this work with vectors as input.
+
+```{r}
+add(c(1,2,4))
+```
+
+
+```{r}
+add(c(1,2,4), 4)
+```
+
+```{r}
+add(c(1,2,4), c(1,2,4))
+```
+
+```{r}
+add(c(1,2,4), c(1,2,4))
+```
+
+
+What is this `range()` function you talk of? 
+```{r}
+x <- c(4,4,10,3,11)
+max(x)
+min(x)
+```
+
+```{r}
+range(x)
+```
+
+This is our second function
+```{r}
+rescale <- function(x) {
+ rng <-range(x)
+ (x - rng[1]) / (rng[2] - rng[1])
+}
+```
+
+```{r}
+rescale(x)
+```
+
+Do some more testing
+```{r}
+rescale(1:10)
+```
+
+```{r}
+# How would you get your function to work here...
+rescale(c(1,2,NA,3,10))
+```
+
+```{r}
+x <- c(1,2,NA,3,10)
+rng <- range(x)
+rng
+```
+
+```{r}
+rng <- range(x, na.rm=TRUE)
+rng
+```
+
+```{r}
+rescale2 <- function(x) {
+ rng <-range(x, na.rm = TRUE)
+ (x - rng[1]) / (rng[2] - rng[1])
+}
+```
+
+```{r}
+rescale2(c(1,2,NA,3,10))
+```
+
+Going too far!
+```{r}
+rescale3 <- function(x, na.rm=TRUE, plot=FALSE) {
+  
+ rng <-range(x, na.rm=na.rm)
+ print("Hello")
+ 
+ answer <- (x - rng[1]) / (rng[2] - rng[1])
+ 
+ print("is it me you are looking for?")
+ 
+ if(plot) {
+ plot(answer, typ="b", lwd=4)
+   
+ }
+ print("I can see it in ...")
+ return(answer)
+}
+```
+
+```{r}
+rescale3(x, plot = TRUE)
+```
+
+Hands on section B.
+
+```{r}
+library(bio3d)
+s1 <- read.pdb("4AKE") # kinase with drug
+s2 <- read.pdb("1AKE") # kinase no drug
+s3 <- read.pdb("1E4Y") # kinase with drug
+
+s1.chainA <- trim.pdb(s1, chain="A", elety="CA")
+s2.chainA <- trim.pdb(s2, chain="A", elety="CA")
+s3.chainA <- trim.pdb(s1, chain="A", elety="CA")
+
+s1.b <- s1.chainA$atom$b
+s2.b <- s2.chainA$atom$b
+s3.b <- s3.chainA$atom$b
+
+plotb3(s1.b, sse=s1.chainA, typ="o", ylab="Bfactor")
+plotb3(s2.b, sse=s2.chainA, typ="o", ylab="Bfactor")
+plotb3(s3.b, sse=s3.chainA, typ="o", ylab="Bfactor")
+```
+
+> Q1. What type of object is returned from the read.pdb() function? 
+
+It is a list of 8 things and of class "pdb", "sse"
+```{r}
+class(s1)
+```
+
+```{r}
+str(s1)
+```
+
+```{r}
+aa321(s1$seqres)
+```
+
+```{r}
+s1$atom
+```
+
+
+```{r}
+plotb3(s1.b, sse=s1.chainA, typ="l", ylab="Bfactor")
+points(s2.b, typ="l", col="blue", lwd=2)
+points(s3.b, typ="l", col="red", lwd=2)
+```
+
+
+```{r}
+hc <- hclust( dist( rbind(s1.b, s2.b, s3.b) ) ) 
+plot(hc)
+```
+
+
+
+
+
+
+
+> QUESTION 6
+
+```{r}
+# Can you improve this analysis code?
+library(bio3d)
+
+s1 <- read.pdb("4AKE") # kinase with drug
+s2 <- read.pdb("1AKE") # kinase no drug
+s3 <- read.pdb("1E4Y") # kinase with drug
+
+s1.chainA <- trim.pdb(s1, chain="A", elety="CA")
+s2.chainA <- trim.pdb(s2, chain="A", elety="CA")
+s3.chainA <- trim.pdb(s1, chain="A", elety="CA")
+
+s1.b <- s1.chainA$atom$b
+s2.b <- s2.chainA$atom$b
+s3.b <- s3.chainA$atom$b
+
+plotb3(s1.b, sse=s1.chainA, typ="l", ylab="Bfactor")
+plotb3(s2.b, sse=s2.chainA, typ="l", ylab="Bfactor")
+plotb3(s3.b, sse=s3.chainA, typ="l", ylab="Bfactor")
+```
+
+## four lines of codes are repeated
+s1 <- read.pdb(“4AKE”)
+s1.chainA <- trim.pdb(s1, chain = “A”, elety = “CA”)
+s1.b <- s1.chainAatomb s1.chainA$atom
+plotb3(s1.b, sse = s1.chainA, typ = “l”, ylab = “Bfactor”)
+
+## Turn this into a new function, drug_interaction_plot.
+
+drug_interaction_plot brings in a vector from PDB files along with the parameters to analyze different files including chain, element, and factor.  
+
+This new function works with any vector from PDB files. It creates the first plot with the first vector with applied parameters and adds other plots to the existing plot.  
+
+To make it easier to visualize, the output is one plot with different colored line for each file. Like plot of original analysis code, the residues are on the x-axis and the specified factor on the y-axis. 
+
+
+```{r}
+drug_interaction_plot <- function(file, chain, elmnt, fctr) {
+  
+  # makes data different colors in the graph
+  plot_colors <- c("pink", "lightblue", "lightgreen")
+  
+  # to repeat through every file vector
+  for (i in 1:length(file)) {
+  s1 <- read.pdb(file[i])
+
+  s1.chain <- trim.pdb(s1, chain = chain, elety = elmnt)
+  
+  atom_df <- s1.chain$atom
+  
+  # the "$" syntax cannot take a variable, so s1.fctr takes in all the atom information and selects an entire column based on the factor input
+  s1.fctr <- atom_df[, fctr] 
+  
+  # creates the first plot
+  if (i == 1) {
+    plotb3(s1.fctr, sse = s1.chain, typ = "l", ylab = paste(toupper(fctr), "factor", sep = ""), col = plot_colors[i])
+    
+  # adds additional plots to first plot
+  } else {
+    lines(s1.fctr, col = plot_colors[i])
+  }
+  }
+  
+  # creates a legend for the graph
+  legend("topright", title = "PDB File Name", file, fill = plot_colors, horiz=TRUE, cex = 0.5, inset = c(0.05, 0.05))
+}
+```
+
+##Test the function with three files with parameters of chain "A", elements "CA", and factors "b".
+
+```{r}
+files <- c("4AKE", "1AKE", "1E4Y")
+chains <- "A"
+elements <- "CA"
+factors <- "b"
+
+drug_interaction_plot(files, chains, elements, factors)
+```
+
